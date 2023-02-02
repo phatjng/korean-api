@@ -1,0 +1,5 @@
+.env
+
+db/database.sqlite3
+
+TODO.md
