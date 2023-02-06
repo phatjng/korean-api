@@ -9,6 +9,82 @@ import (
 	"context"
 )
 
+const createCard = `-- name: CreateCard :exec
+insert into cards (
+  id, front, back, deck_id
+) values (
+  ?, ?, ?, ?
+)
+`
+
+type CreateCardParams struct {
+	ID     string
+	Front  string
+	Back   string
+	DeckID string
+}
+
+func (q *Queries) CreateCard(ctx context.Context, arg CreateCardParams) error {
+	_, err := q.db.ExecContext(ctx, createCard,
+		arg.ID,
+		arg.Front,
+		arg.Back,
+		arg.DeckID,
+	)
+	return err
+}
+
+const createDeck = `-- name: CreateDeck :exec
+insert into decks (
+  id, title
+) values (
+  ?, ?
+)
+`
+
+type CreateDeckParams struct {
+	ID    string
+	Title string
+}
+
+func (q *Queries) CreateDeck(ctx context.Context, arg CreateDeckParams) error {
+	_, err := q.db.ExecContext(ctx, createDeck, arg.ID, arg.Title)
+	return err
+}
+
+const getAllCardsFromDeck = `-- name: GetAllCardsFromDeck :many
+select id, front, back, deck_id from cards
+where deck_id = ?
+`
+
+func (q *Queries) GetAllCardsFromDeck(ctx context.Context, deckID string) ([]Card, error) {
+	rows, err := q.db.QueryContext(ctx, getAllCardsFromDeck, deckID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Card
+	for rows.Next() {
+		var i Card
+		if err := rows.Scan(
+			&i.ID,
+			&i.Front,
+			&i.Back,
+			&i.DeckID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getCard = `-- name: GetCard :one
 select id, front, back, deck_id from cards
 where id = ? limit 1
@@ -23,5 +99,29 @@ func (q *Queries) GetCard(ctx context.Context, id string) (Card, error) {
 		&i.Back,
 		&i.DeckID,
 	)
+	return i, err
+}
+
+const getDeck = `-- name: GetDeck :one
+select id, title from decks
+where id = ? limit 1
+`
+
+func (q *Queries) GetDeck(ctx context.Context, id string) (Deck, error) {
+	row := q.db.QueryRowContext(ctx, getDeck, id)
+	var i Deck
+	err := row.Scan(&i.ID, &i.Title)
+	return i, err
+}
+
+const getDeckByTitle = `-- name: GetDeckByTitle :one
+select id, title from decks
+where title = ? limit 1
+`
+
+func (q *Queries) GetDeckByTitle(ctx context.Context, title string) (Deck, error) {
+	row := q.db.QueryRowContext(ctx, getDeckByTitle, title)
+	var i Deck
+	err := row.Scan(&i.ID, &i.Title)
 	return i, err
 }

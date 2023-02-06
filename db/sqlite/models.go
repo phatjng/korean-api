@@ -4,9 +4,7 @@
 
 package sqlite
 
-import (
-	"database/sql"
-)
+import ()
 
 type Card struct {
 	ID     string
@@ -17,5 +15,5 @@ type Card struct {
 
 type Deck struct {
 	ID    string
-	Title sql.NullString
+	Title string
 }

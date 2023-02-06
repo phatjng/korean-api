@@ -1,7 +1,7 @@
 -- migrate:up
 create table decks (
   id varchar(12) primary key,
-  title varchar(50)
+  title varchar(50) not null
 );
 
 create table cards (

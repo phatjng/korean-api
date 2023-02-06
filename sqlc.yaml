@@ -9,3 +9,4 @@ sql:
         out: "db/sqlite"
         rename:
           migrations: "SchemaMigrations"
+        json_tags_case_style: "snake"
